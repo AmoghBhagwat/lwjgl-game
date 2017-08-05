@@ -5,6 +5,7 @@ import com.amoghbhagwat.engine.Window;
 import com.amoghbhagwat.engine.graph.ShaderProgram;
 import com.amoghbhagwat.engine.light.DirectionalLight;
 import com.amoghbhagwat.engine.light.PointLight;
+import com.amoghbhagwat.engine.light.SpotLight;
 import com.amoghbhagwat.game.entities.Camera;
 import com.amoghbhagwat.game.entities.GameItem;
 import com.amoghbhagwat.game.utils.Transformation;
@@ -46,12 +47,13 @@ public class Renderer {
         shaderProgram.createUniform("specularPower");
         shaderProgram.createUniform("ambientLight");
         shaderProgram.createPointLightUniform("pointLight");
+        shaderProgram.createSpotLightUniform("spotLight");
         shaderProgram.createDirectionalLightUniform("directionalLight");
 
         glEnable(GL_DEPTH_TEST);
     }
 
-    public void render(Window window, List<GameItem> gameItems, Camera camera, Vector3f ambientLight, PointLight pointLight, DirectionalLight directionalLight) {
+    public void render(Window window, List<GameItem> gameItems, Camera camera, Vector3f ambientLight, PointLight pointLight, SpotLight spotLight, DirectionalLight directionalLight) {
         clear();
 
         if (window.isResized()) {
@@ -82,11 +84,25 @@ public class Renderer {
         lightPosition.z = aux.z;
         shaderProgram.setUniform("pointLight", currentPointLight);
 
+        // update spot light uniforms
+        SpotLight currentSpotLight = new SpotLight(spotLight);
+        Vector4f spotLightDirection = new Vector4f(currentSpotLight.getConeDirection(), 0);
+        spotLightDirection.mul(viewMatrix);
+        currentSpotLight.setConeDirection(new Vector3f(spotLightDirection.x, spotLightDirection.y, spotLightDirection.z));
+
+        Vector3f spotLightPosition = currentSpotLight.getPointLight().getPosition();
+        Vector4f auxSpot = new Vector4f(spotLightPosition, 1);
+        auxSpot.mul(viewMatrix);
+        spotLightPosition.x = auxSpot.x;
+        spotLightPosition.y = auxSpot.y;
+        spotLightPosition.z = auxSpot.z;
+        shaderProgram.setUniform("spotLight", currentSpotLight);
+
         // update directional light uniforms
         DirectionalLight currentDirectionalLight = new DirectionalLight(directionalLight);
-        Vector4f direction = new Vector4f(currentDirectionalLight.getDirection(), 0);
-        direction.mul(viewMatrix);
-        currentDirectionalLight.setDirection(new Vector3f(direction.x, direction.y, direction.z));
+        Vector4f directionalLightDirection = new Vector4f(currentDirectionalLight.getDirection(), 0);
+        directionalLightDirection.mul(viewMatrix);
+        currentDirectionalLight.setDirection(new Vector3f(directionalLightDirection.x, directionalLightDirection.y, directionalLightDirection.z));
         shaderProgram.setUniform("directionalLight", currentDirectionalLight);
 
         for (GameItem gameItem : gameItems) {

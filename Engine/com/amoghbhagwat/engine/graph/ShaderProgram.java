@@ -2,6 +2,7 @@ package com.amoghbhagwat.engine.graph;
 
 import com.amoghbhagwat.engine.light.DirectionalLight;
 import com.amoghbhagwat.engine.light.PointLight;
+import com.amoghbhagwat.engine.light.SpotLight;
 import com.amoghbhagwat.engine.models.Material;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
@@ -39,6 +40,14 @@ public class ShaderProgram {
         uniforms.put(uniformName, uniformLocation);
     }
 
+    public void createMaterialUniform(String uniformName) throws Exception {
+        createUniform(uniformName + ".ambient");
+        createUniform(uniformName + ".diffuse");
+        createUniform(uniformName + ".specular");
+        createUniform(uniformName + ".hasTexture");
+        createUniform(uniformName + ".reflectance");
+    }
+
     public void createPointLightUniform(String uniformName) throws Exception {
         createUniform(uniformName + ".color");
         createUniform(uniformName + ".position");
@@ -48,12 +57,10 @@ public class ShaderProgram {
         createUniform(uniformName + ".attenuation.exponent");
     }
 
-    public void createMaterialUniform(String uniformName) throws Exception {
-        createUniform(uniformName + ".ambient");
-        createUniform(uniformName + ".diffuse");
-        createUniform(uniformName + ".specular");
-        createUniform(uniformName + ".hasTexture");
-        createUniform(uniformName + ".reflectance");
+    public void createSpotLightUniform(String uniformName) throws Exception {
+        createPointLightUniform(uniformName + ".pointLight");
+        createUniform(uniformName + ".coneDirection");
+        createUniform(uniformName + ".cutOffAngle");
     }
 
     public void createDirectionalLightUniform(String uniformName) throws Exception {
@@ -86,6 +93,14 @@ public class ShaderProgram {
         glUniform1f(uniforms.get(uniformName), value);
     }
 
+    public void setUniform(String uniformName, Material material) {
+        setUniform(uniformName + ".ambient", material.getAmbientColor());
+        setUniform(uniformName + ".diffuse", material.getDiffuseColor());
+        setUniform(uniformName + ".specular", material.getSpecularColor());
+        setUniform(uniformName + ".hasTexture", material.isTextured() ? 1 : 0);
+        setUniform(uniformName + ".reflectance", material.getReflectance());
+    }
+
     public void setUniform(String uniformName, PointLight pointLight) {
         setUniform(uniformName + ".color", pointLight.getColor());
         setUniform(uniformName + ".position", pointLight.getPosition());
@@ -96,12 +111,10 @@ public class ShaderProgram {
         setUniform(uniformName + ".attenuation.exponent", attenuation.getExponent());
     }
 
-    public void setUniform(String uniformName, Material material) {
-        setUniform(uniformName + ".ambient", material.getAmbientColor());
-        setUniform(uniformName + ".diffuse", material.getDiffuseColor());
-        setUniform(uniformName + ".specular", material.getSpecularColor());
-        setUniform(uniformName + ".hasTexture", material.isTextured() ? 1 : 0);
-        setUniform(uniformName + ".reflectance", material.getReflectance());
+    public void setUniform(String uniformName, SpotLight spotLight) {
+        setUniform(uniformName + ".pointLight", spotLight.getPointLight());
+        setUniform(uniformName + ".coneDirection", spotLight.getConeDirection());
+        setUniform(uniformName + ".cutOffAngle", spotLight.getCutOffAngle());
     }
 
     public void setUniform(String uniformName, DirectionalLight light) {
